@@ -143,7 +143,16 @@ class RRTStarAlgorithm():
             goalCost += self.distance(goal.parent, np.array([goal.locationX, goal.locationY]))
             goal = goal.parent  #set the node to it's parent
         self.goalCosts.append(goalCost)    
-        
+        output_file = r"C:\Users\sachi\Planning\Deep-RRT-Star-Implementation\output.csv"
+        with open(output_file, 'a', newline='') as file:
+            writer = csv.writer(file)
+            if file.tell() == 0: # Checks if the file is empty
+                writer.writerow(['current_x', 'current_y', 'goal_x', 'goal_y', 'image_number', 'next_node_x', 'next_node_y'])
+            for i in range(len(rrtStar.Waypoints)-1):
+                current_x, current_y = rrtStar.Waypoints[i][0], rrtStar.Waypoints[i][1]
+                next_node_x, next_node_y = rrtStar.Waypoints[i+1][0], rrtStar.Waypoints[i+1][1]
+                writer.writerow([current_x, current_y, goal_x, goal_y, image_number, next_node_x, next_node_y])
+
     #find unique path length from root of a node (cost) (DONE)
     def findPathDistance(self, node):
         costFromRoot = 0
@@ -281,44 +290,11 @@ with open(file_path, 'r') as file:
                         print("Goal Cost: ", rrtStar.goalCosts)
                         plt.pause(0.25)
                         rrtStar.Waypoints.insert(0,start)
-
-                        # Set the path to the CSV file
-                        # csv_file = r"C:\Users\sachi\Planning\Deep-RRT-Star-Implementation\start_goal_points_images.csv"
-                        
-                        points = []
-                        #plot the waypoints
                         for i in range(len(rrtStar.Waypoints)-1):
+                                print("Waypoint: ", rrtStar.Waypoints[i][0], rrtStar.Waypoints[i][1])
+                                plt.plot([rrtStar.Waypoints[i][0], rrtStar.Waypoints[i+1][0]], [rrtStar.Waypoints[i][1], rrtStar.Waypoints[i+1][1]],'ro', linestyle="--")
+                                plt.pause(0.01)
 
-                            print("Waypoint: ", rrtStar.Waypoints[i][0], rrtStar.Waypoints[i][1])
-                            plt.plot([rrtStar.Waypoints[i][0], rrtStar.Waypoints[i+1][0]], [rrtStar.Waypoints[i][1], rrtStar.Waypoints[i+1][1]],'ro', linestyle="--")
-                            plt.pause(0.01)
-                            # Read the CSV file
-                            # with open(csv_file, 'r') as file:
-                            #     reader = csv.reader(file)
-                            #     header = next(reader)  # Skip the header row
-                            #     data = list(reader)
-                            
-                            # Extract the data from the CSV file
-                            # start_x_list = [int(row[0]) for row in data]
-                            # start_y_list = [int(row[1]) for row in data]
-                            # goal_x_list = [int(row[2]) for row in data]
-                            # goal_y_list = [int(row[3]) for row in data]
-                            # image_number_list = [int(row[4]) for row in data]
-
-                            paths = []
-                                
-                            # Write the output to a new CSV file
-                            output_file = r"C:\Users\sachi\Planning\Deep-RRT-Star-Implementation\output.csv"
-                            with open(output_file, 'w', newline='') as file:
-                                writer = csv.writer(file)
-                                writer.writerow(['current_x', 'current_y', 'goal_x', 'goal_y', 'image_number', 'next_node_x', 'next_node_y'])
-                                for i in range(len(rrtStar.Waypoints)-1):
-                                    for j in range(len(rrtStar.Waypoints)-1):
-                                        current_x, current_y = rrtStar.Waypoints[j][0], rrtStar.Waypoints[j][1]
-                                        next_node_x, next_node_y = rrtStar.Waypoints[j+1][0], rrtStar.Waypoints[j+1][1]
-
-                                        writer.writerow([current_x, current_y, goal_x, goal_y, image_number_list[i], next_node_x, next_node_y])
-
-                    break
+                        break
         plt.show()
 # print("Goal Costs: ", rrtStar.goalCosts[1:-1]) 
