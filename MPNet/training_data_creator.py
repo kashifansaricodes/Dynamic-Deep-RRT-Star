@@ -6,10 +6,10 @@ from matplotlib.pyplot import rcParams
 import csv
 import cv2
 
-np.set_printoptions(precision=3, suppress=True)
-rcParams['font.family'] = 'sans-serif'
-rcParams['font.sans-serif'] = ['Tahoma']
-plt.rcParams['font.size'] = 15
+# np.set_printoptions(precision=3, suppress=True)
+# rcParams['font.family'] = 'sans-serif'
+# rcParams['font.sans-serif'] = ['Tahoma']
+# plt.rcParams['font.size'] = 15
 
 #tree Node class
 class treeNode():
@@ -71,6 +71,9 @@ class RRTStarAlgorithm():
         u_hat = self.unitVector(locationStart, locationEnd)
         testPoint = np.array([0.0, 0.0])
         dist = self.distance(locationStart, locationEnd)
+        # Check if dist is NaN
+        if np.isnan(dist):
+            return False
         for i in range(int(dist)):
             testPoint[0] = min(grid.shape[1]-1, locationStart.locationX + i*u_hat[0])
             testPoint[1] = min(grid.shape[0]-1,locationStart.locationY + i*u_hat[1])
@@ -144,14 +147,31 @@ class RRTStarAlgorithm():
             goal = goal.parent  #set the node to it's parent
         self.goalCosts.append(goalCost)    
         output_file = r"C:\Users\sachi\Planning\Deep-RRT-Star-Implementation\output.csv"
+        # with open(output_file, 'a', newline='') as file:
+        #     writer = csv.writer(file)
+        #     if file.tell() == 0: # Checks if the file is empty
+        #         writer.writerow(['current_x', 'current_y', 'goal_x', 'goal_y', 'image_number', 'next_node_x', 'next_node_y'])
+        #     for i in range(len(rrtStar.Waypoints)-1):
+        #         current_x, current_y = rrtStar.Waypoints[i][0], rrtStar.Waypoints[i][1]
+        #         next_node_x, next_node_y = rrtStar.Waypoints[i+1][0], rrtStar.Waypoints[i+1][1]
+        #         writer.writerow([current_x, current_y, goal_x, goal_y, image_number, next_node_x, next_node_y])
+
         with open(output_file, 'a', newline='') as file:
             writer = csv.writer(file)
             if file.tell() == 0: # Checks if the file is empty
-                writer.writerow(['current_x', 'current_y', 'goal_x', 'goal_y', 'image_number', 'next_node_x', 'next_node_y'])
+                writer.writerow(['current_x', 'current_y', 'index_start', 'index_goal'])
+            index_start = file.tell() - len('\n')
             for i in range(len(rrtStar.Waypoints)-1):
                 current_x, current_y = rrtStar.Waypoints[i][0], rrtStar.Waypoints[i][1]
-                next_node_x, next_node_y = rrtStar.Waypoints[i+1][0], rrtStar.Waypoints[i+1][1]
-                writer.writerow([current_x, current_y, goal_x, goal_y, image_number, next_node_x, next_node_y])
+                
+                index_goal = index_start + len(rrtStar.Waypoints) - 2
+                if i == 0:
+                    writer.writerow([start_x, start_y, index_start, index_goal])
+                elif i == len(rrtStar.Waypoints)-2:
+                    writer.writerow([goal_x, goal_y])
+                else:
+                    writer.writerow([current_x, current_y])
+
 
     #find unique path length from root of a node (cost) (DONE)
     def findPathDistance(self, node):
@@ -162,27 +182,6 @@ class RRTStarAlgorithm():
             currentNode = currentNode.parent   
         return costFromRoot    
         
-#end of class definitions
-#----------------------------------------------------------------------------------------------------------------------------#
-# '''
-# Npy implementation
-# '''        
-# # load the grid, set start and goal <x, y> positions, number of iterations, step size
-# grid = np.load(r'C:\Users\sachi\Planning\Deep-RRT-Star-Implementation\Maps\map_0.npy')
-# start = np.array([300.0, 300.0])
-# goal = np.array([1000.0, 775.0])
-# numIterations = 700
-# stepSize = 75
-# goalRegion = plt.Circle((goal[0], goal[1]), stepSize, color='b', fill = False)
-# fig = plt.figure("RRT Star Algorithm")
-# plt.imshow(grid, cmap='gray')
-# plt.plot(start[0],start[1],'ro')
-# plt.plot(goal[0],goal[1],'bo')
-# ax = fig.gca()
-# ax.add_patch(goalRegion)
-# plt.xlabel('X-axis $(m)$')
-# plt.ylabel('Y-axis $(m)$')
-# print(grid.shape)
 '''
 Jpg Implementation
 '''
@@ -201,18 +200,17 @@ with open(file_path, 'r') as file:
         grid = cv2.cvtColor(image_path, cv2.COLOR_BGR2GRAY) 
 
         # Display the image
-        fig = plt.figure("RRT Star Algorithm")
+        # fig = plt.figure("RRT Star Algorithm")
         numIterations = 700
         stepSize = 7
 
-        plt.imshow(grid , cmap = 'gray')
-        plt.plot(start_x,start_y,'ro')
-        plt.plot(goal_x,goal_y,'bo')
-        ax = fig.gca()
-        # ax.add_patch(goalRegion)
-        plt.xlabel('X-axis $(m)$')
-        plt.ylabel('Y-axis $(m)$')
-        # plt.show()
+        # plt.imshow(grid , cmap = 'gray')
+        # plt.plot(start_x,start_y,'ro')
+        # plt.plot(goal_x,goal_y,'bo')
+        # ax = fig.gca()
+        # # ax.add_patch(goalRegion)
+        # plt.xlabel('X-axis $(m)$')
+        # plt.ylabel('Y-axis $(m)$')
 
         start = np.array([start_x, start_y])
         goal = np.array([goal_x, goal_y])
@@ -263,8 +261,8 @@ with open(file_path, 'r') as file:
                 #addChild (add newNode to the nearest node - which is now updated and is the minimum cost node)
                 rrtStar.addChild(newNode)
                 #plot for display
-                plt.pause(0.01)
-                plt.plot([rrtStar.nearestNode.locationX, new[0]], [rrtStar.nearestNode.locationY, new[1]],'go', linestyle="--")  
+                # plt.pause(0.01)
+                # plt.plot([rrtStar.nearestNode.locationX, new[0]], [rrtStar.nearestNode.locationY, new[1]],'go', linestyle="--")  
                 
                 #rewire tree (TODO-------)    
                 #for each node in neighbouringNodes
@@ -284,17 +282,17 @@ with open(file_path, 'r') as file:
                     projectedCost = rrtStar.findPathDistance(newNode) + rrtStar.distance(rrtStar.goal, point)
                     if projectedCost < rrtStar.goalCosts[-1]:
                         rrtStar.addChild(rrtStar.goal)
-                        plt.plot([rrtStar.nearestNode.locationX, rrtStar.goalArray[0]], [rrtStar.nearestNode.locationY, rrtStar.goalArray[1]],'go', linestyle="--") 
+                        # plt.plot([rrtStar.nearestNode.locationX, rrtStar.goalArray[0]], [rrtStar.nearestNode.locationY, rrtStar.goalArray[1]],'go', linestyle="--") 
                         #retrace and plot, this method finds waypoints and cost from root
                         rrtStar.retracePath()
                         print("Goal Cost: ", rrtStar.goalCosts)
-                        plt.pause(0.25)
+                        # plt.pause(0.25)
                         rrtStar.Waypoints.insert(0,start)
                         for i in range(len(rrtStar.Waypoints)-1):
                                 print("Waypoint: ", rrtStar.Waypoints[i][0], rrtStar.Waypoints[i][1])
-                                plt.plot([rrtStar.Waypoints[i][0], rrtStar.Waypoints[i+1][0]], [rrtStar.Waypoints[i][1], rrtStar.Waypoints[i+1][1]],'ro', linestyle="--")
-                                plt.pause(0.01)
+                                # plt.plot([rrtStar.Waypoints[i][0], rrtStar.Waypoints[i+1][0]], [rrtStar.Waypoints[i][1], rrtStar.Waypoints[i+1][1]],'ro', linestyle="--")
+                                # plt.pause(0.01)
 
                         break
-        plt.show()
+        # plt.show()
 # print("Goal Costs: ", rrtStar.goalCosts[1:-1]) 
