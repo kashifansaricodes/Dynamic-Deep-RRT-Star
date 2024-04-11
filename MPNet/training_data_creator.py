@@ -1,4 +1,4 @@
-#RRT Star algorithm
+
 import numpy as np
 import matplotlib.pyplot as plt
 import random
@@ -6,12 +6,6 @@ from matplotlib.pyplot import rcParams
 import csv
 import cv2
 
-# np.set_printoptions(precision=3, suppress=True)
-# rcParams['font.family'] = 'sans-serif'
-# rcParams['font.sans-serif'] = ['Tahoma']
-# plt.rcParams['font.size'] = 15
-
-#tree Node class
 class treeNode():
     def __init__(self, locationX, locationY):
         self.locationX = locationX                #X Location
@@ -21,7 +15,7 @@ class treeNode():
         
 #RRT Star Algorithm class
 class RRTStarAlgorithm():
-    def __init__(self, start, goal, numIterations, grid, stepSize):
+    def __init__(self, start, goal, numIterations, grid, stepSize, row_number, image_number):
         self.randomTree = treeNode(start[0], start[1])          #The RRT (root position) (has 0 cost)
         self.goal = treeNode(goal[0], goal[1])                  #goal position (initialize to a high cost)
         self.nearestNode = None                                 #nearest node            
@@ -35,6 +29,11 @@ class RRTStarAlgorithm():
         self.neighbouringNodes = []                             #neighbouring nodes  
         self.goalArray = np.array([goal[0],goal[1]])            #goal as an array
         self.goalCosts = [10000]                                #the costs to the goal (ignore first value)
+        self.row_number = row_number
+        self.image_number = image_number
+        
+        
+        
             
     #add the node to the nearest node, and add goal if necessary (TODO--------)     
     def addChild(self, treeNode):
@@ -147,54 +146,63 @@ class RRTStarAlgorithm():
             goal = goal.parent  #set the node to it's parent
         self.goalCosts.append(goalCost)    
         output_file = r"C:\Users\sachi\Planning\Deep-RRT-Star-Implementation\output.csv"
-        # with open(output_file, 'a', newline='') as file:
-        #     writer = csv.writer(file)
-        #     if file.tell() == 0: # Checks if the file is empty
-        #         writer.writerow(['current_x', 'current_y', 'goal_x', 'goal_y', 'image_number', 'next_node_x', 'next_node_y'])
-        #     for i in range(len(rrtStar.Waypoints)-1):
-        #         current_x, current_y = rrtStar.Waypoints[i][0], rrtStar.Waypoints[i][1]
-        #         next_node_x, next_node_y = rrtStar.Waypoints[i+1][0], rrtStar.Waypoints[i+1][1]
-        #         writer.writerow([current_x, current_y, goal_x, goal_y, image_number, next_node_x, next_node_y])
 
         with open(output_file, 'a', newline='') as file:
             writer = csv.writer(file)
             if file.tell() == 0: # Checks if the file is empty
-                writer.writerow(['current_x', 'current_y', 'index_start', 'index_goal'])
-            index_start = file.tell() - len('\n')
+                writer.writerow(['current_x', 'current_y', 'index_start', 'index_goal', 'image_number'])
+            index_start = self.row_number 
+            index_goal = index_start + len(rrtStar.Waypoints) - 2
             for i in range(len(rrtStar.Waypoints)-1):
                 current_x, current_y = rrtStar.Waypoints[i][0], rrtStar.Waypoints[i][1]
-                
-                index_goal = index_start + len(rrtStar.Waypoints) - 2
                 if i == 0:
-                    writer.writerow([start_x, start_y, index_start, index_goal])
+                    writer.writerow([start_x, start_y, index_start, index_goal, image_number])
                 elif i == len(rrtStar.Waypoints)-2:
                     writer.writerow([goal_x, goal_y])
                 else:
                     writer.writerow([current_x, current_y])
-
+                self.row_number += 1
+        return self.row_number
 
     #find unique path length from root of a node (cost) (DONE)
     def findPathDistance(self, node):
         costFromRoot = 0
-        currentNode = node
-        while currentNode.locationX != self.randomTree.locationX:
-            costFromRoot += self.distance(currentNode, np.array([currentNode.parent.locationX, currentNode.parent.locationY])) 
-            currentNode = currentNode.parent   
-        return costFromRoot    
-        
-'''
-Jpg Implementation
-'''
+        currentNode = node 
+        while currentNode and currentNode.parent and currentNode.locationX != self.randomTree.locationX:
+                parent_location = np.array([currentNode.parent.locationX, currentNode.parent.locationY])
+                costFromRoot += self.distance(currentNode, parent_location)
+                currentNode = currentNode.parent   
+                if currentNode is None or currentNode.parent is None:
+                    return 0
+        return costFromRoot
 
-file_path = r'C:\Users\sachi\Planning\Deep-RRT-Star-Implementation\start_goal_points_images.csv'
 
-# Read the CSV file
+
+file_path = r"C:\Users\sachi\Planning\Deep-RRT-Star-Implementation\start_goal_points_images.csv"
+r_n = 0
+path_number = 1
+prev_image_number = 0
+environments_covered = {}
+path_not_generated = {0:[]}
 with open(file_path, 'r') as file:
     reader = csv.reader(file)
     next(reader)  # Skip the header row
     for row in reader:
         start_x, start_y, goal_x, goal_y, image_number = map(int, row)
-          
+        prev_path_number = path_number
+        print(image_number)
+        if (image_number != prev_image_number):
+            environments_covered[prev_image_number] = path_number
+            path_number = 1
+            prev_image_number = image_number
+        
+            path_number_file  =  r"C:\Users\sachi\Planning\Deep-RRT-Star-Implementation\number_of_paths.csv"
+            with open(path_number_file, 'a', newline='') as file:
+                writer = csv.writer(file)
+                if file.tell() == 0: # Checks if the file is empty
+                    writer.writerow(['image_number', 'number_of_paths'])
+                writer.writerow([image_number, environments_covered[prev_image_number]])
+
         image_path = cv2.imread(f'C:/Users/sachi/Planning/Deep-RRT-Star-Implementation/images/{image_number}.jpg')
 
         grid = cv2.cvtColor(image_path, cv2.COLOR_BGR2GRAY) 
@@ -202,7 +210,7 @@ with open(file_path, 'r') as file:
         # Display the image
         # fig = plt.figure("RRT Star Algorithm")
         numIterations = 700
-        stepSize = 7
+        stepSize = 5
 
         # plt.imshow(grid , cmap = 'gray')
         # plt.plot(start_x,start_y,'ro')
@@ -216,13 +224,12 @@ with open(file_path, 'r') as file:
         goal = np.array([goal_x, goal_y])
             
         #Begin
-        rrtStar = RRTStarAlgorithm(start, goal, numIterations, grid, stepSize)
+        rrtStar = RRTStarAlgorithm(start, goal, numIterations, grid, stepSize, r_n, image_number)
         plt.pause(2)
 
         #RRT Star algorithm (TODO-------)
         #iterate
         for i in range(rrtStar.iterations):
-            
             #Reset nearest values, call the resetNearestValues method
             rrtStar.resetNearestValues()
             # print("Iteration: ",i)
@@ -280,19 +287,34 @@ with open(file_path, 'r') as file:
                 point = np.array([newNode.locationX, newNode.locationY])
                 if rrtStar.goalFound(point):
                     projectedCost = rrtStar.findPathDistance(newNode) + rrtStar.distance(rrtStar.goal, point)
-                    if projectedCost < rrtStar.goalCosts[-1]:
-                        rrtStar.addChild(rrtStar.goal)
-                        # plt.plot([rrtStar.nearestNode.locationX, rrtStar.goalArray[0]], [rrtStar.nearestNode.locationY, rrtStar.goalArray[1]],'go', linestyle="--") 
-                        #retrace and plot, this method finds waypoints and cost from root
-                        rrtStar.retracePath()
-                        print("Goal Cost: ", rrtStar.goalCosts)
-                        # plt.pause(0.25)
-                        rrtStar.Waypoints.insert(0,start)
-                        for i in range(len(rrtStar.Waypoints)-1):
-                                print("Waypoint: ", rrtStar.Waypoints[i][0], rrtStar.Waypoints[i][1])
-                                # plt.plot([rrtStar.Waypoints[i][0], rrtStar.Waypoints[i+1][0]], [rrtStar.Waypoints[i][1], rrtStar.Waypoints[i+1][1]],'ro', linestyle="--")
-                                # plt.pause(0.01)
-
-                        break
-        # plt.show()
-# print("Goal Costs: ", rrtStar.goalCosts[1:-1]) 
+                    if projectedCost > 0 :
+                        if projectedCost < rrtStar.goalCosts[-1]:
+                            rrtStar.addChild(rrtStar.goal)
+                            # plt.plot([rrtStar.nearestNode.locationX, rrtStar.goalArray[0]], [rrtStar.nearestNode.locationY, rrtStar.goalArray[1]],'go', linestyle="--") 
+                            #retrace and plot, this method finds waypoints and cost from root
+                            row_number = rrtStar.retracePath()
+                            r_n = row_number
+                            print('path ', path_number , 'for image ', image_number)
+                            path_number += 1
+    #                         print('returned row number after overwritting')
+    #                         print(r_n)
+                            print("Goal Cost: ", rrtStar.goalCosts)
+                            # plt.pause(0.25)
+                            rrtStar.Waypoints.insert(0,start)
+    #                         for i in range(len(rrtStar.Waypoints)-1):
+    #                                 print("Waypoint: ", rrtStar.Waypoints[i][0], rrtStar.Waypoints[i][1])
+    #                                 # plt.plot([rrtStar.Waypoints[i][0], rrtStar.Waypoints[i+1][0]], [rrtStar.Waypoints[i][1], rrtStar.Waypoints[i+1][1]],'ro', linestyle="--")
+    #                                 # plt.pause(0.01)
+                            break
+                if (prev_path_number == path_number):
+                    if image_number not in path_not_generated:
+                        path_not_generated[image_number] = [(start, goal)]
+                    else:
+                        path_not_generated[image_number].append((start, goal))
+                    no_path_file  =  r"C:\Users\sachi\Planning\Deep-RRT-Star-Implementation\no_path_generated_examples.csv"
+                    with open(no_path_file, 'a', newline='') as file:
+                            writer = csv.writer(file)
+                            if file.tell() == 0: # Checks if the file is empty
+                                writer.writerow(['image_number', 'number_of_paths'])
+                            for i in range(len(path_not_generated[image_number])):
+                                writer.writerow([image_number, path_not_generated[image_number][i]])
