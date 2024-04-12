@@ -184,137 +184,142 @@ path_number = 1
 prev_image_number = 0
 environments_covered = {}
 path_not_generated = {0:[]}
+start_row_number = 0
 with open(file_path, 'r') as file:
     reader = csv.reader(file)
     next(reader)  # Skip the header row
     for row in reader:
-        start_x, start_y, goal_x, goal_y, image_number = map(int, row)
-        prev_path_number = path_number
-        print(image_number)
-        if (image_number != prev_image_number):
-            environments_covered[prev_image_number] = path_number
-            path_number = 1
-            prev_image_number = image_number
-        
-            path_number_file  =  r"C:\Users\sachi\Planning\Deep-RRT-Star-Implementation\number_of_paths.csv"
-            with open(path_number_file, 'a', newline='') as file:
-                writer = csv.writer(file)
-                if file.tell() == 0: # Checks if the file is empty
-                    writer.writerow(['image_number', 'number_of_paths'])
-                writer.writerow([image_number, environments_covered[prev_image_number]])
-
-        image_path = cv2.imread(f'C:/Users/sachi/Planning/Deep-RRT-Star-Implementation/images/{image_number}.jpg')
-
-        grid = cv2.cvtColor(image_path, cv2.COLOR_BGR2GRAY) 
-
-        # Display the image
-        # fig = plt.figure("RRT Star Algorithm")
-        numIterations = 700
-        stepSize = 5
-
-        # plt.imshow(grid , cmap = 'gray')
-        # plt.plot(start_x,start_y,'ro')
-        # plt.plot(goal_x,goal_y,'bo')
-        # ax = fig.gca()
-        # # ax.add_patch(goalRegion)
-        # plt.xlabel('X-axis $(m)$')
-        # plt.ylabel('Y-axis $(m)$')
-
-        start = np.array([start_x, start_y])
-        goal = np.array([goal_x, goal_y])
+        if start_row_number == 99:
+            start_x, start_y, goal_x, goal_y, image_number = map(int, row)
+            prev_path_number = path_number
+            print(image_number)
+            if (image_number != prev_image_number):
+                environments_covered[prev_image_number] = path_number
+                path_number = 1
+                prev_image_number = image_number
             
-        #Begin
-        rrtStar = RRTStarAlgorithm(start, goal, numIterations, grid, stepSize, r_n, image_number)
-        plt.pause(2)
+                path_number_file  =  r"C:\Users\sachi\Planning\Deep-RRT-Star-Implementation\number_of_paths.csv"
+                with open(path_number_file, 'a', newline='') as file:
+                    writer = csv.writer(file)
+                    if file.tell() == 0: # Checks if the file is empty
+                        writer.writerow(['image_number', 'number_of_paths'])
+                    writer.writerow([image_number, environments_covered[prev_image_number]])
 
-        #RRT Star algorithm (TODO-------)
-        #iterate
-        for i in range(rrtStar.iterations):
-            #Reset nearest values, call the resetNearestValues method
-            rrtStar.resetNearestValues()
-            # print("Iteration: ",i)
-            
-            #algorithm begins here-------------------------------------------------------------------------------
-            
-            #sample a point (use the appropriate method)
-            point = rrtStar.sampleAPoint()
-            #find the nearest node w.r.t to the point (just call the method do not return anything)
-            rrtStar.findNearest(rrtStar.randomTree, point)
-            new = rrtStar.steerToPoint(rrtStar.nearestNode, point)
-            #if not in obstacle    
-            if not rrtStar.isInObstacle(rrtStar.nearestNode, new):
-                rrtStar.findNeighbouringNodes(rrtStar.randomTree, new)
-                min_cost_node = rrtStar.nearestNode
-                min_cost = rrtStar.findPathDistance(min_cost_node)
-                min_cost = min_cost + rrtStar.distance(rrtStar.nearestNode, new)
+            image_path = cv2.imread(f'C:/Users/sachi/Planning/Deep-RRT-Star-Implementation/images/{image_number}.jpg')
+
+            grid = cv2.cvtColor(image_path, cv2.COLOR_BGR2GRAY) 
+
+            # Display the image
+            # fig = plt.figure("RRT Star Algorithm")
+            numIterations = 700
+            stepSize = 5
+
+            # plt.imshow(grid , cmap = 'gray')
+            # plt.plot(start_x,start_y,'ro')
+            # plt.plot(goal_x,goal_y,'bo')
+            # ax = fig.gca()
+            # # ax.add_patch(goalRegion)
+            # plt.xlabel('X-axis $(m)$')
+            # plt.ylabel('Y-axis $(m)$')
+
+            start = np.array([start_x, start_y])
+            goal = np.array([goal_x, goal_y])
                 
-                #for each node in neighbouringNodes
-                for vertex in rrtStar.neighbouringNodes:
-                    #find the cost from the root (findPathDistance)
-                    min_cost_with_neighbor = rrtStar.findPathDistance(vertex)
-                    #add the distance between the node and the new point ('new') to the above cost (use the relevant method)
-                    min_cost_with_neighbor += rrtStar.distance(vertex, new)
-                    #if node and new are obstacle free AND the cost is lower than min_cost (use the relevant method)
-                    if not rrtStar.isInObstacle(vertex, new) and min_cost_with_neighbor < min_cost:
-                        #set the min_cost_node to this node
-                        min_cost_node = vertex
-                        #set the min_cost to this cost
-                        min_cost = min_cost_with_neighbor
+            #Begin
+            rrtStar = RRTStarAlgorithm(start, goal, numIterations, grid, stepSize, r_n, image_number)
+            plt.pause(2)
 
-                #update nearest node to min_cost_node, create a treeNode object from the new point - call this newNode ('new[0],new[1]')
-                rrtStar.nearestNode = min_cost_node
-                newNode = treeNode(new[0], new[1])
-                #SIDE NOTE: if neighbouringNodes is empty, it'll add to the original nearest node (obstacle free)  
-                #addChild (add newNode to the nearest node - which is now updated and is the minimum cost node)
-                rrtStar.addChild(newNode)
-                #plot for display
-                # plt.pause(0.01)
-                # plt.plot([rrtStar.nearestNode.locationX, new[0]], [rrtStar.nearestNode.locationY, new[1]],'go', linestyle="--")  
+            #RRT Star algorithm (TODO-------)
+            #iterate
+            for i in range(rrtStar.iterations):
+                #Reset nearest values, call the resetNearestValues method
+                rrtStar.resetNearestValues()
+                # print("Iteration: ",i)
                 
-                #rewire tree (TODO-------)    
-                #for each node in neighbouringNodes
-                for vertex in rrtStar.neighbouringNodes:
-                    #set a variable: 'cost' to min_cost
-                    cost = min_cost
-                    #add the distance between 'new' and node to cost
-                    cost += rrtStar.distance(vertex, new)
-                    #if node and new are obstacle free AND the cost is lower than the distance from root to vertex (use findPathDistance method)
-                    if rrtStar.isInObstacle(vertex, new) and cost < rrtStar.findPathDistance(vertex):
-                        vertex.parent = newNode
-                    #set the parent of node to 'newNode' (see line 190)
+                #algorithm begins here-------------------------------------------------------------------------------
+                
+                #sample a point (use the appropriate method)
+                point = rrtStar.sampleAPoint()
+                #find the nearest node w.r.t to the point (just call the method do not return anything)
+                rrtStar.findNearest(rrtStar.randomTree, point)
+                new = rrtStar.steerToPoint(rrtStar.nearestNode, point)
+                #if not in obstacle    
+                if not rrtStar.isInObstacle(rrtStar.nearestNode, new):
+                    rrtStar.findNeighbouringNodes(rrtStar.randomTree, new)
+                    min_cost_node = rrtStar.nearestNode
+                    min_cost = rrtStar.findPathDistance(min_cost_node)
+                    min_cost = min_cost + rrtStar.distance(rrtStar.nearestNode, new)
                     
-                #if goal found, and the projected cost is lower, then append to path let it sample more (DONE)
-                point = np.array([newNode.locationX, newNode.locationY])
-                if rrtStar.goalFound(point):
-                    projectedCost = rrtStar.findPathDistance(newNode) + rrtStar.distance(rrtStar.goal, point)
-                    if projectedCost > 0 :
-                        if projectedCost < rrtStar.goalCosts[-1]:
-                            rrtStar.addChild(rrtStar.goal)
-                            # plt.plot([rrtStar.nearestNode.locationX, rrtStar.goalArray[0]], [rrtStar.nearestNode.locationY, rrtStar.goalArray[1]],'go', linestyle="--") 
-                            #retrace and plot, this method finds waypoints and cost from root
-                            row_number = rrtStar.retracePath()
-                            r_n = row_number
-                            print('path ', path_number , 'for image ', image_number)
-                            path_number += 1
-    #                         print('returned row number after overwritting')
-    #                         print(r_n)
-                            print("Goal Cost: ", rrtStar.goalCosts)
-                            # plt.pause(0.25)
-                            rrtStar.Waypoints.insert(0,start)
-    #                         for i in range(len(rrtStar.Waypoints)-1):
-    #                                 print("Waypoint: ", rrtStar.Waypoints[i][0], rrtStar.Waypoints[i][1])
-    #                                 # plt.plot([rrtStar.Waypoints[i][0], rrtStar.Waypoints[i+1][0]], [rrtStar.Waypoints[i][1], rrtStar.Waypoints[i+1][1]],'ro', linestyle="--")
-    #                                 # plt.pause(0.01)
-                            break
-                if (prev_path_number == path_number):
-                    if image_number not in path_not_generated:
-                        path_not_generated[image_number] = [(start, goal)]
-                    else:
-                        path_not_generated[image_number].append((start, goal))
-                    no_path_file  =  r"C:\Users\sachi\Planning\Deep-RRT-Star-Implementation\no_path_generated_examples.csv"
-                    with open(no_path_file, 'a', newline='') as file:
-                            writer = csv.writer(file)
-                            if file.tell() == 0: # Checks if the file is empty
-                                writer.writerow(['image_number', 'number_of_paths'])
-                            for i in range(len(path_not_generated[image_number])):
-                                writer.writerow([image_number, path_not_generated[image_number][i]])
+                    #for each node in neighbouringNodes
+                    for vertex in rrtStar.neighbouringNodes:
+                        #find the cost from the root (findPathDistance)
+                        min_cost_with_neighbor = rrtStar.findPathDistance(vertex)
+                        #add the distance between the node and the new point ('new') to the above cost (use the relevant method)
+                        min_cost_with_neighbor += rrtStar.distance(vertex, new)
+                        #if node and new are obstacle free AND the cost is lower than min_cost (use the relevant method)
+                        if not rrtStar.isInObstacle(vertex, new) and min_cost_with_neighbor < min_cost:
+                            #set the min_cost_node to this node
+                            min_cost_node = vertex
+                            #set the min_cost to this cost
+                            min_cost = min_cost_with_neighbor
+
+                    #update nearest node to min_cost_node, create a treeNode object from the new point - call this newNode ('new[0],new[1]')
+                    rrtStar.nearestNode = min_cost_node
+                    newNode = treeNode(new[0], new[1])
+                    #SIDE NOTE: if neighbouringNodes is empty, it'll add to the original nearest node (obstacle free)  
+                    #addChild (add newNode to the nearest node - which is now updated and is the minimum cost node)
+                    rrtStar.addChild(newNode)
+                    #plot for display
+                    # plt.pause(0.01)
+                    # plt.plot([rrtStar.nearestNode.locationX, new[0]], [rrtStar.nearestNode.locationY, new[1]],'go', linestyle="--")  
+                    
+                    #rewire tree (TODO-------)    
+                    #for each node in neighbouringNodes
+                    for vertex in rrtStar.neighbouringNodes:
+                        #set a variable: 'cost' to min_cost
+                        cost = min_cost
+                        #add the distance between 'new' and node to cost
+                        cost += rrtStar.distance(vertex, new)
+                        #if node and new are obstacle free AND the cost is lower than the distance from root to vertex (use findPathDistance method)
+                        if rrtStar.isInObstacle(vertex, new) and cost < rrtStar.findPathDistance(vertex):
+                            vertex.parent = newNode
+                        #set the parent of node to 'newNode' (see line 190)
+                        
+                    #if goal found, and the projected cost is lower, then append to path let it sample more (DONE)
+                    point = np.array([newNode.locationX, newNode.locationY])
+                    if rrtStar.goalFound(point):
+                        projectedCost = rrtStar.findPathDistance(newNode) + rrtStar.distance(rrtStar.goal, point)
+                        if projectedCost > 0 :
+                            if projectedCost < rrtStar.goalCosts[-1]:
+                                rrtStar.addChild(rrtStar.goal)
+                                # plt.plot([rrtStar.nearestNode.locationX, rrtStar.goalArray[0]], [rrtStar.nearestNode.locationY, rrtStar.goalArray[1]],'go', linestyle="--") 
+                                #retrace and plot, this method finds waypoints and cost from root
+                                row_number = rrtStar.retracePath()
+                                r_n = row_number
+                                print('path ', path_number , 'for image ', image_number)
+                                path_number += 1
+        #                         print('returned row number after overwritting')
+        #                         print(r_n)
+                                print("Goal Cost: ", rrtStar.goalCosts)
+                                # plt.pause(0.25)
+                                rrtStar.Waypoints.insert(0,start)
+        #                         for i in range(len(rrtStar.Waypoints)-1):
+        #                                 print("Waypoint: ", rrtStar.Waypoints[i][0], rrtStar.Waypoints[i][1])
+        #                                 # plt.plot([rrtStar.Waypoints[i][0], rrtStar.Waypoints[i+1][0]], [rrtStar.Waypoints[i][1], rrtStar.Waypoints[i+1][1]],'ro', linestyle="--")
+        #                                 # plt.pause(0.01)
+                                break
+                    if (prev_path_number == path_number):
+                        if image_number not in path_not_generated:
+                            path_not_generated[image_number] = [(start, goal)]
+                        else:
+                            path_not_generated[image_number].append((start, goal))
+                        no_path_file  =  r"C:\Users\sachi\Planning\Deep-RRT-Star-Implementation\no_path_generated_examples.csv"
+                        with open(no_path_file, 'a', newline='') as file:
+                                writer = csv.writer(file)
+                                if file.tell() == 0: # Checks if the file is empty
+                                    writer.writerow(['image_number', 'number_of_paths'])
+                                for i in range(len(path_not_generated[image_number])):
+                                    writer.writerow([image_number, path_not_generated[image_number][i]])
+
+        else:
+            start_row_number += 1
