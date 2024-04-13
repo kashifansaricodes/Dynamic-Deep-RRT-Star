@@ -306,9 +306,12 @@ with open(file_path, 'r') as file:
         #                         for i in range(len(rrtStar.Waypoints)-1):
         #                                 print("Waypoint: ", rrtStar.Waypoints[i][0], rrtStar.Waypoints[i][1])
         #                                 # plt.plot([rrtStar.Waypoints[i][0], rrtStar.Waypoints[i+1][0]], [rrtStar.Waypoints[i][1], rrtStar.Waypoints[i+1][1]],'ro', linestyle="--")
-        #                                 # plt.pause(0.01)
+        #                         
+        #         # plt.pause(0.01)
                                 break
-                    if (prev_path_number == path_number):
+                    
+                    if not (prev_path_number == path_number):
+                        print('path ', path_number , 'prev path ', prev_path_number)
                         if image_number not in path_not_generated:
                             path_not_generated[image_number] = [(start, goal)]
                         else:
