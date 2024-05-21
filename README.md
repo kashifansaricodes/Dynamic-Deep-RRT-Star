@@ -1,6 +1,8 @@
 # RT Deep RRT Star
  State of the Art RRT Star Implementation using Deep Neural Networks. 
 
+ [Static Environment](https://github.com/robosac333/Deep-RRT-Star-Implementation/blob/main/results/Static%20enviournment.gif)
+
 ## Step 1 : Dataset Management ( Till Block 2)
 
 Creates Dataset including 200 start, goal points for each environment and stores it in the csv file in a format Comaptible with the Data Loader.
