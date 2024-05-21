@@ -1,9 +1,9 @@
 # RT Deep RRT Star
  State of the Art RRT Star Implementation using Deep Neural Networks. 
 
-![Static Environment](https://github.com/robosac333/Deep-RRT-Star-Implementation/blob/main/results/Static%20enviournment.gif)
+The first GIF Shows the RRT Star Implementation followed by Static Deep RRT Star Implementation
 
-![Dynamic Environment](https://github.com/robosac333/Deep-RRT-Star-Implementation/blob/main/results/Dynamic%20env.gif)
+The Second GIF Shows the Dynamic Real Time Deep RRT Star Implementation where the network adapts to changing environments and provides the next step accordingly.
 
 <p align="center">
   <img src="https://github.com/robosac333/Deep-RRT-Star-Implementation/blob/main/results/Static%20enviournment.gif" alt="Static Environment" width="45%" />
