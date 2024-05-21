@@ -5,6 +5,11 @@
 
 ![Dynamic Environment](https://github.com/robosac333/Deep-RRT-Star-Implementation/blob/main/results/Dynamic%20env.gif)
 
+<p align="center">
+  <img src="https://github.com/robosac333/Deep-RRT-Star-Implementation/blob/main/results/Static%20enviournment.gif" alt="Static Environment" width="45%" />
+  <img src="https://github.com/robosac333/Deep-RRT-Star-Implementation/blob/main/results/Dynamic%20env.gif" alt="Dynamic Environment" width="45%" />
+</p>
+
 ## Step 1 : Dataset Management ( Till Block 2)
 
 Creates Dataset including 200 start, goal points for each environment and stores it in the csv file in a format Comaptible with the Data Loader.
